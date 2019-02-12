@@ -1,8 +1,1 @@
-# stuff
-/venv
-/lib
-/lib64
-__pycache__
-/bin
-/var
-/sdist
+# things for git to ignore
