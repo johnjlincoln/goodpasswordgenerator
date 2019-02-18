@@ -2,12 +2,10 @@ package main
 
 import (
     "fmt"
-    "html"
+    // "html"
     "log"
     "net/http"
     "bufio"
-    "io"
-    "io/ioutil"
     "os"
 )
 
@@ -17,9 +15,25 @@ func check(e error) {
     }
 }
 
+func readWordDictionary(path string) ([]string, error) {
+    file, err := os.Open(path)
+    check(err)
+    defer file.Close()
+
+    var words []string
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        words = append(words, scanner.Text())
+    }
+    return words, scanner.Err()
+}
+
 func main() {
+    words, err := readWordDictionary("../slurp/1984-list.txt")
+    check(err)
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+        _, err := fmt.Fprintln(w, words)
+        check(err)
     })
 
     log.Fatal(http.ListenAndServe(":8080", nil))
