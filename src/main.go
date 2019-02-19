@@ -12,11 +12,10 @@ import (
 	"time"
 )
 
-// PasswordJSON is a json object containing a password string as well as the word count of the dictionary used
-// https://golangcode.com/json-encode-an-array-of-objects/ try this cleaner implementation
-type PasswordJSON struct {
-	Password            string `json:"password"`
-	DictionaryWordCount int    `json:"dictionaryWordCount"`
+// Password is a password object containing pw string and source dictionary word count
+type Password struct {
+	Password            string
+	DictionaryWordCount int
 }
 
 func check(e error) {
@@ -73,14 +72,14 @@ func main() {
 	http.HandleFunc("/get/password", func(w http.ResponseWriter, r *http.Request) {
 		securePassowrd, dictionaryWordCount := getSecurePassword(words)
 		securePasswordString := strings.Join(securePassowrd, "")
-		response := PasswordJSON{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
+		response := Password{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/password")
 		json.NewEncoder(w).Encode(response)
 	})
 
 	http.HandleFunc("/get/dictionary/length", func(w http.ResponseWriter, r *http.Request) {
 		dictionaryWordCount := getDictionaryWordCount(words)
-		response := PasswordJSON{DictionaryWordCount: dictionaryWordCount}
+		response := Password{DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/dictionary/length")
 		json.NewEncoder(w).Encode(response)
 	})
