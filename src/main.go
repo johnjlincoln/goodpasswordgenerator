@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -37,7 +38,7 @@ func readWordDictionary(path string) ([]string, error) {
 	return words, scanner.Err()
 }
 
-func getSecurePassword(words []string) ([]string, int) {
+func getSecurePassword(words []string, chars []string) ([]string, int) {
 	var securePassowrd []string
 	dictionaryWordCount := len(words)
 	s := rand.NewSource(time.Now().Unix())
@@ -45,6 +46,9 @@ func getSecurePassword(words []string) ([]string, int) {
 	for len(securePassowrd) < 4 {
 		securePassowrd = append(securePassowrd, words[r.Intn(dictionaryWordCount)])
 	}
+	randomChar := chars[r.Intn(len(chars))]
+	randomNum := strconv.Itoa(r.Intn(999))
+	securePassowrd = append(securePassowrd, randomChar, randomNum)
 	return securePassowrd, dictionaryWordCount
 }
 
@@ -57,20 +61,10 @@ func getDictionaryWordCount(words []string) int {
 func main() {
 	words, err := readWordDictionary("../slurp/1984-list.txt")
 	check(err)
-	var specialChars = make([]string, 10)
-	specialChars[0] = "*"
-	specialChars[1] = "!"
-	specialChars[2] = "@"
-	specialChars[3] = "#"
-	specialChars[4] = "$"
-	specialChars[5] = "%"
-	specialChars[6] = "~"
-	specialChars[7] = "_"
-	specialChars[8] = "?"
-	specialChars[9] = "+"
+	specialChars := []string{"*", "!", "@", "#", "$", "%", "~", "_", "?", "+"}
 
 	http.HandleFunc("/get/password", func(w http.ResponseWriter, r *http.Request) {
-		securePassowrd, dictionaryWordCount := getSecurePassword(words)
+		securePassowrd, dictionaryWordCount := getSecurePassword(words, specialChars)
 		securePasswordString := strings.Join(securePassowrd, "")
 		response := Password{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/password")
