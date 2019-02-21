@@ -8,21 +8,39 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-// PasswordJSON is a json object containing a password string as well as the word count of the dictionary used
-// https://golangcode.com/json-encode-an-array-of-objects/ try this cleaner implementation
-type PasswordJSON struct {
-	Password            string `json:"password"`
-	DictionaryWordCount int    `json:"dictionaryWordCount"`
+// Password defines the structure of password data that this endpoint will serve
+type Password struct {
+	Password            string
+	DictionaryWordCount int
+}
+
+// Config defines the structure of configuration files for this application
+type Config struct {
+	WordDictionaryPath string
+	PasswordWordCount  int
+	UseSpecialChars    bool
+	UseNumber          bool
 }
 
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func loadConfigurations(configJSONPath string) Config {
+	configJSON, err := os.Open(configJSONPath)
+	check(err)
+	decoder := json.NewDecoder(configJSON)
+	config := Config{}
+	err = decoder.Decode(&config)
+	check(err)
+	return config
 }
 
 func readWordDictionary(path string) ([]string, error) {
@@ -38,50 +56,51 @@ func readWordDictionary(path string) ([]string, error) {
 	return words, scanner.Err()
 }
 
-func getSecurePassword(words []string) ([]string, int) {
+func getSecurePassword(words []string, chars []string, config Config) ([]string, int) {
 	var securePassowrd []string
 	dictionaryWordCount := len(words)
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
-	for len(securePassowrd) < 4 {
+	for len(securePassowrd) < config.PasswordWordCount {
 		securePassowrd = append(securePassowrd, words[r.Intn(dictionaryWordCount)])
+	}
+	if config.UseSpecialChars {
+		randomChar := chars[r.Intn(len(chars))]
+		securePassowrd = append(securePassowrd, randomChar)
+	}
+	if config.UseNumber {
+		randomNum := strconv.Itoa(r.Intn(999))
+		securePassowrd = append(securePassowrd, randomNum)
 	}
 	return securePassowrd, dictionaryWordCount
 }
 
-func getSecurePasswordOpts(words []string) {}
+// TODO: implement fn to generate password based on options passed in from front end (post payload)
+// func getSecurePasswordOpts(words []string) {}
 
 func getDictionaryWordCount(words []string) int {
 	return len(words)
 }
 
 func main() {
-	words, err := readWordDictionary("../slurp/1984-list.txt")
+	// TODO: pass in path to config file as ENV variable
+	config := loadConfigurations("config/sample.conf.json")
+	words, err := readWordDictionary(config.WordDictionaryPath)
 	check(err)
-	var specialChars = make([]string, 10)
-	specialChars[0] = "*"
-	specialChars[1] = "!"
-	specialChars[2] = "@"
-	specialChars[3] = "#"
-	specialChars[4] = "$"
-	specialChars[5] = "%"
-	specialChars[6] = "~"
-	specialChars[7] = "_"
-	specialChars[8] = "?"
-	specialChars[9] = "+"
+	specialChars := []string{"*", "!", "@", "#", "$", "%", "~", "_", "?", "+"}
 
 	http.HandleFunc("/get/password", func(w http.ResponseWriter, r *http.Request) {
-		securePassowrd, dictionaryWordCount := getSecurePassword(words)
+		securePassowrd, dictionaryWordCount := getSecurePassword(words, specialChars, config)
 		securePasswordString := strings.Join(securePassowrd, "")
-		response := PasswordJSON{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
+		response := Password{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/password")
 		json.NewEncoder(w).Encode(response)
 	})
 
-	http.HandleFunc("/get/dictionary/length", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/get/dictionary/wordcount", func(w http.ResponseWriter, r *http.Request) {
 		dictionaryWordCount := getDictionaryWordCount(words)
-		response := PasswordJSON{DictionaryWordCount: dictionaryWordCount}
-		fmt.Println("hit /get/dictionary/length")
+		response := Password{DictionaryWordCount: dictionaryWordCount}
+		fmt.Println("hit /get/dictionary/wordcount")
 		json.NewEncoder(w).Encode(response)
 	})
 
