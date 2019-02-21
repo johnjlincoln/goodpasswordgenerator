@@ -83,8 +83,13 @@ func getDictionaryWordCount(words []string) int {
 }
 
 func main() {
-	// TODO: pass in path to config file as ENV variable
-	config := loadConfigurations("config/sample.conf.json")
+	var config Config
+	configPath, isSetConfigPath := os.LookupEnv("CONFIG_JSON_PATH")
+	if isSetConfigPath {
+		config = loadConfigurations(configPath)
+	} else {
+		config = loadConfigurations("config/sample.conf.json")
+	}
 	words, err := readWordDictionary(config.WordDictionaryPath)
 	check(err)
 	specialChars := []string{"*", "!", "@", "#", "$", "%", "~", "_", "?", "+"}
