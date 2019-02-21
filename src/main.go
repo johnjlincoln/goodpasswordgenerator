@@ -13,16 +13,31 @@ import (
 	"time"
 )
 
-// Password is a password object containing pw string and source dictionary word count
+// Password defines the structure of password data that this endpoint will serve
 type Password struct {
 	Password            string
 	DictionaryWordCount int
+}
+
+// Config defines the structure of configuration files for this application
+type Config struct {
+	WordDictionaryPath string
 }
 
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func loadConfigurations(configJSONPath string) Config {
+	configJSON, err := os.Open(configJSONPath)
+	check(err)
+	decoder := json.NewDecoder(configJSON)
+	config := Config{}
+	err = decoder.Decode(&config)
+	check(err)
+	return config
 }
 
 func readWordDictionary(path string) ([]string, error) {
@@ -59,7 +74,8 @@ func getDictionaryWordCount(words []string) int {
 }
 
 func main() {
-	words, err := readWordDictionary("../slurp/1984-list.txt")
+	config := loadConfigurations("config/sample.conf.json")
+	words, err := readWordDictionary(config.WordDictionaryPath)
 	check(err)
 	specialChars := []string{"*", "!", "@", "#", "$", "%", "~", "_", "?", "+"}
 
