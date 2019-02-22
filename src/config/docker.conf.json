@@ -1,5 +1,6 @@
 {
     "WordDictionaryPath" : "/go/src/goodpasswordgenerator/slurp/secure/002.pw",
+    "SpecialCharsListPath" : "/go/src/goodpasswordgenerator/slurp/specialchars.pw",
     "PasswordWordCount" : 4,
     "UseSpecialChars" : true,
     "UseNumber" : true

@@ -21,10 +21,11 @@ type Password struct {
 
 // Config defines the structure of configuration files for this application
 type Config struct {
-	WordDictionaryPath string
-	PasswordWordCount  int
-	UseSpecialChars    bool
-	UseNumber          bool
+	WordDictionaryPath   string
+	SpecialCharsListPath string
+	PasswordWordCount    int
+	UseSpecialChars      bool
+	UseNumber            bool
 }
 
 func check(e error) {
@@ -48,17 +49,17 @@ func loadConfigurations() Config {
 	return config
 }
 
-func readWordDictionary(path string) ([]string, error) {
+func readPwFile(path string) ([]string, error) {
 	file, err := os.Open(path)
 	check(err)
 	defer file.Close()
 
-	var words []string
+	var elements []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		words = append(words, scanner.Text())
+		elements = append(elements, scanner.Text())
 	}
-	return words, scanner.Err()
+	return elements, scanner.Err()
 }
 
 func getSecurePassword(words []string, chars []string, config Config) ([]string, int) {
@@ -89,9 +90,10 @@ func getDictionaryWordCount(words []string) int {
 
 func main() {
 	config := loadConfigurations()
-	words, err := readWordDictionary(config.WordDictionaryPath)
+	words, err := readPwFile(config.WordDictionaryPath)
 	check(err)
-	specialChars := []string{"*", "!", "@", "#", "$", "%", "~", "_", "?", "+"}
+	specialChars, err := readPwFile(config.SpecialCharsListPath)
+	check(err)
 
 	http.HandleFunc("/get/password", func(w http.ResponseWriter, r *http.Request) {
 		securePassowrd, dictionaryWordCount := getSecurePassword(words, specialChars, config)
