@@ -34,7 +34,7 @@ func check(e error) {
 	}
 }
 
-func loadConfigurations() Config {
+func readConfigurations() Config {
 	var configJSONPath string
 	configJSONPath, isSet := os.LookupEnv("CONFIG_JSON_PATH")
 	if !isSet {
@@ -89,7 +89,7 @@ func getDictionaryWordCount(words []string) int {
 }
 
 func main() {
-	config := loadConfigurations()
+	config := readConfigurations()
 	words, err := readPwFile(config.WordDictionaryPath)
 	check(err)
 	specialChars, err := readPwFile(config.SpecialCharsListPath)
