@@ -38,7 +38,7 @@ func readConfigurations() Config {
 	var configJSONPath string
 	configJSONPath, isSet := os.LookupEnv("CONFIG_JSON_PATH")
 	if !isSet {
-		configJSONPath = "config/sample.conf.json"
+		configJSONPath = "config/dev.conf.json"
 	}
 	configJSON, err := os.Open(configJSONPath)
 	check(err)
