@@ -100,6 +100,7 @@ func main() {
 		securePasswordString := strings.Join(securePassowrd, "")
 		response := Password{Password: securePasswordString, DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/password")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		json.NewEncoder(w).Encode(response)
 	})
 
@@ -107,6 +108,7 @@ func main() {
 		dictionaryWordCount := getDictionaryWordCount(words)
 		response := Password{DictionaryWordCount: dictionaryWordCount}
 		fmt.Println("hit /get/dictionary/wordcount")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		json.NewEncoder(w).Encode(response)
 	})
 
